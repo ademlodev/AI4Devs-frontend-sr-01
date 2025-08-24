@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Button } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
+import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import {
   InterviewProcess as InterviewProcessType,
   CandidatesByPhase,
@@ -80,6 +81,73 @@ const InterviewProcess: React.FC = () => {
     navigate('/positions');
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    console.log('Drag end result:', result);
+    const { destination, source, draggableId } = result;
+
+    // Si no hay destino, no hacer nada
+    if (!destination) {
+      console.log('No destination, returning');
+      return;
+    }
+
+    // Si se movió a la misma posición, no hacer nada
+    if (destination.droppableId === source.droppableId && destination.index === source.index) {
+      console.log('Same position, returning');
+      return;
+    }
+
+    if (!processData) return;
+
+    // Encontrar el candidato que se está moviendo
+    const candidate = processData.candidates.find((c) => c.id === draggableId);
+    if (!candidate) return;
+
+    // Encontrar la fase de destino
+    const destinationPhase = processData.phases.find((p) => p.id === destination.droppableId);
+    if (!destinationPhase) return;
+
+    try {
+      // Actualización optimista: actualizar el estado local primero
+      const updatedCandidates = processData.candidates.map((c) =>
+        c.id === draggableId
+          ? { ...c, currentInterviewStep: destinationPhase.name, currentPhaseId: destinationPhase.name }
+          : c
+      );
+
+      setProcessData({
+        ...processData,
+        candidates: updatedCandidates,
+      });
+
+      // Llamar al API para actualizar en el backend
+      await InterviewService.updateCandidateStage(candidate.id, {
+        applicationId: candidate.applicationId.toString(),
+        currentInterviewStep: destinationPhase.id,
+      });
+
+      console.log(`Candidato ${candidate.fullName} movido a ${destinationPhase.name}`);
+    } catch (error) {
+      console.error('Error updating candidate stage:', error);
+
+      // Revertir el cambio optimista en caso de error
+      const revertedCandidates = processData.candidates.map((c) =>
+        c.id === draggableId
+          ? candidate // Restaurar el candidato original
+          : c
+      );
+
+      setProcessData({
+        ...processData,
+        candidates: revertedCandidates,
+      });
+
+      // Mostrar error al usuario (opcional: añadir toast notification)
+      setError('Error al mover el candidato. Por favor, intenta de nuevo.');
+      setTimeout(() => setError(null), 3000);
+    }
+  };
+
   const groupCandidatesByPhase = (): CandidatesByPhase => {
     if (!processData) return {};
 
@@ -140,6 +208,10 @@ const InterviewProcess: React.FC = () => {
 
   const candidatesByPhase = groupCandidatesByPhase();
 
+  // Debug: Log para verificar datos
+  console.log('ProcessData:', processData);
+  console.log('CandidatesByPhase:', candidatesByPhase);
+
   return (
     <Container className="mt-4">
       {/* Header con navegación */}
@@ -150,14 +222,17 @@ const InterviewProcess: React.FC = () => {
         <h2 className="mb-0">{processData.position.title}</h2>
       </div>
 
-      {/* Columnas de fases */}
-      <Row className="interview-process-columns">
-        {processData.phases
-          .sort((a, b) => a.order - b.order)
-          .map((phase) => (
-            <PhaseColumn key={phase.id} phase={phase} candidates={candidatesByPhase[phase.id] || []} />
-          ))}
-      </Row>
+      {/* Drag & Drop Context */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        {/* Columnas de fases */}
+        <Row className="interview-process-columns">
+          {processData.phases
+            .sort((a, b) => a.order - b.order)
+            .map((phase) => (
+              <PhaseColumn key={phase.id} phase={phase} candidates={candidatesByPhase[phase.id] || []} />
+            ))}
+        </Row>
+      </DragDropContext>
     </Container>
   );
 };

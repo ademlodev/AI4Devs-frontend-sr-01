@@ -47,6 +47,7 @@ export interface Candidate {
   currentPhaseId: string;
   fullName: string;
   currentInterviewStep: string;
+  applicationId: number;
 }
 
 export interface Position {
@@ -73,4 +74,23 @@ export interface InterviewProcess {
 
 export interface CandidatesByPhase {
   [phaseId: string]: Candidate[];
+}
+
+// Tipos para actualización de candidatos
+export interface UpdateCandidateStageRequest {
+  applicationId: string;
+  currentInterviewStep: string; // Se envía como string pero representa un número
+}
+
+export interface UpdateCandidateStageResponse {
+  message: string;
+  data: {
+    id: number;
+    positionId: number;
+    candidateId: number;
+    applicationDate: string;
+    currentInterviewStep: number;
+    notes: string | null;
+    interviews: any[];
+  };
 }

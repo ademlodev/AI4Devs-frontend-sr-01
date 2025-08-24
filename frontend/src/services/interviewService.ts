@@ -1,4 +1,11 @@
-import { InterviewFlowResponse, InterviewFlowApiResponse, CandidateApiResponse, Candidate } from '../types/interview.types';
+import {
+  InterviewFlowResponse,
+  InterviewFlowApiResponse,
+  CandidateApiResponse,
+  Candidate,
+  UpdateCandidateStageRequest,
+  UpdateCandidateStageResponse,
+} from '../types/interview.types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3010';
 
@@ -45,12 +52,12 @@ export class InterviewService {
       }
 
       const apiData: CandidateApiResponse[] = await response.json();
-      
+
       // Convertir los datos del API al formato interno
       const candidates: Candidate[] = apiData.map((candidateData) => {
         const [firstName, ...lastNameParts] = candidateData.fullName.split(' ');
         const lastName = lastNameParts.join(' ');
-        
+
         return {
           id: candidateData.id.toString(),
           firstName: firstName || '',
@@ -59,12 +66,44 @@ export class InterviewService {
           averageScore: candidateData.averageScore,
           currentPhaseId: candidateData.currentInterviewStep, // Usamos el nombre del paso como ID
           currentInterviewStep: candidateData.currentInterviewStep,
+          applicationId: candidateData.applicationId,
         };
       });
 
       return candidates;
     } catch (error) {
       console.error('Error fetching candidates:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Actualiza la etapa de un candidato
+   * @param candidateId ID del candidato
+   * @param request Datos de la actualización
+   * @returns Promise con la respuesta de la actualización
+   */
+  static async updateCandidateStage(
+    candidateId: string,
+    request: UpdateCandidateStageRequest
+  ): Promise<UpdateCandidateStageResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/candidates/${candidateId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(request),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const data: UpdateCandidateStageResponse = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating candidate stage:', error);
       throw error;
     }
   }

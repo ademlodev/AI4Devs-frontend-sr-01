@@ -1,5 +1,6 @@
 import React from 'react';
 import { Col } from 'react-bootstrap';
+import { Droppable } from 'react-beautiful-dnd';
 import { InterviewPhase, Candidate } from '../types/interview.types';
 import CandidateCard from './CandidateCard';
 
@@ -15,15 +16,26 @@ const PhaseColumn: React.FC<PhaseColumnProps> = ({ phase, candidates }) => {
         <div className="phase-header text-center p-3 mb-3 bg-light rounded">
           <h5 className="mb-0 fw-bold">{phase.name}</h5>
         </div>
-        <div className="phase-candidates">
-          {candidates.length > 0 ? (
-            candidates.map((candidate) => <CandidateCard key={candidate.id} candidate={candidate} />)
-          ) : (
-            <div className="text-center no-candidates p-3">
-              <small>No hay candidatos en esta fase</small>
+        <Droppable droppableId={phase.id}>
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={`phase-candidates ${snapshot.isDraggingOver ? 'drag-over' : ''}`}
+            >
+              {candidates.length > 0 ? (
+                candidates.map((candidate, index) => (
+                  <CandidateCard key={candidate.id} candidate={candidate} index={index} />
+                ))
+              ) : (
+                <div className="text-center no-candidates p-3">
+                  <small>No hay candidatos en esta fase</small>
+                </div>
+              )}
+              {provided.placeholder}
             </div>
           )}
-        </div>
+        </Droppable>
       </div>
     </Col>
   );
