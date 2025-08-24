@@ -35,7 +35,7 @@ const CandidateCard: React.FC<CandidateCardProps> = ({ candidate }) => {
     <Card className="mb-3 shadow-sm candidate-card">
       <Card.Body className="p-3">
         <div className="candidate-name fw-bold mb-2">
-          {candidate.firstName} {candidate.lastName}
+          {candidate.fullName || `${candidate.firstName} ${candidate.lastName}`}
         </div>
         <div className="candidate-score">
           {renderStars(candidate.averageScore)}

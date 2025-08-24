@@ -2,8 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Button } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'react-bootstrap-icons';
-import { InterviewProcess as InterviewProcessType, CandidatesByPhase, InterviewPhase, Candidate } from '../types/interview.types';
+import {
+  InterviewProcess as InterviewProcessType,
+  CandidatesByPhase,
+  InterviewPhase,
+  InterviewStep,
+} from '../types/interview.types';
 import PhaseColumn from './PhaseColumn';
+import { InterviewService } from '../services/interviewService';
 import '../styles/InterviewProcess.css';
 
 const InterviewProcess: React.FC = () => {
@@ -11,43 +17,63 @@ const InterviewProcess: React.FC = () => {
   const navigate = useNavigate();
   const [processData, setProcessData] = useState<InterviewProcessType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data - esto será reemplazado por llamadas a API
+  // Función para convertir InterviewStep a InterviewPhase
+  const convertToInterviewPhases = (steps: InterviewStep[]): InterviewPhase[] => {
+    return steps.map((step) => ({
+      id: step.id.toString(),
+      name: step.name,
+      order: step.orderIndex,
+      description: undefined,
+    }));
+  };
+
+  // Cargar datos reales de la API
   useEffect(() => {
-    const loadMockData = () => {
-      const mockPhases: InterviewPhase[] = [
-        { id: '1', name: 'Llamada telefónica', order: 1 },
-        { id: '2', name: 'Entrevista técnica', order: 2 },
-        { id: '3', name: 'Entrevista cultural', order: 3 },
-        { id: '4', name: 'Entrevista manager', order: 4 }
-      ];
+    const loadInterviewFlow = async () => {
+      if (!positionId) {
+        setError('ID de posición no válido');
+        setLoading(false);
+        return;
+      }
 
-      const mockCandidates: Candidate[] = [
-        { id: '1', firstName: 'John', lastName: 'Doe', email: 'john@example.com', averageScore: 3, currentPhaseId: '1' },
-        { id: '2', firstName: 'Alice', lastName: 'Johnson', email: 'alice@example.com', averageScore: 4, currentPhaseId: '1' },
-        { id: '3', firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', averageScore: 3, currentPhaseId: '2' },
-        { id: '4', firstName: 'Bob', lastName: 'Brown', email: 'bob@example.com', averageScore: 2, currentPhaseId: '3' },
-        { id: '5', firstName: 'Eva', lastName: 'White', email: 'eva@example.com', averageScore: 5, currentPhaseId: '4' }
-      ];
+      try {
+        setLoading(true);
+        setError(null);
 
-      const mockPosition = {
-        id: positionId || '1',
-        title: 'Senior Backend Engineer Position',
-        manager: 'John Doe',
-        deadline: '2024-12-31',
-        status: 'Abierto' as const
-      };
+        // Obtener datos del flujo de entrevistas y candidatos en paralelo
+        const [interviewFlowData, candidatesData] = await Promise.all([
+          InterviewService.getInterviewFlow(positionId),
+          InterviewService.getCandidatesByPosition(positionId),
+        ]);
 
-      setProcessData({
-        position: mockPosition,
-        phases: mockPhases,
-        candidates: mockCandidates
-      });
-      setLoading(false);
+        // Convertir los datos de la API al formato esperado por el componente
+        const phases = convertToInterviewPhases(interviewFlowData.interviewFlow.interviewSteps);
+
+        // Mock position data (esto se puede mejorar cuando tengamos el endpoint de posiciones)
+        const mockPosition = {
+          id: positionId,
+          title: interviewFlowData.positionName,
+          manager: 'TBD', // Por definir cuando tengamos más datos
+          deadline: 'TBD', // Por definir cuando tengamos más datos
+          status: 'Abierto' as const,
+        };
+
+        setProcessData({
+          position: mockPosition,
+          phases: phases,
+          candidates: candidatesData,
+        });
+      } catch (err) {
+        console.error('Error loading interview flow:', err);
+        setError(err instanceof Error ? err.message : 'Error desconocido al cargar los datos');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // Simular carga de datos
-    setTimeout(loadMockData, 500);
+    loadInterviewFlow();
   }, [positionId]);
 
   const handleGoBack = () => {
@@ -56,21 +82,24 @@ const InterviewProcess: React.FC = () => {
 
   const groupCandidatesByPhase = (): CandidatesByPhase => {
     if (!processData) return {};
-    
+
     const grouped: CandidatesByPhase = {};
-    
-    // Inicializar todas las fases
-    processData.phases.forEach(phase => {
+
+    // Inicializar todas las fases usando el ID como clave
+    processData.phases.forEach((phase) => {
       grouped[phase.id] = [];
     });
-    
-    // Agrupar candidatos por fase
-    processData.candidates.forEach(candidate => {
-      if (grouped[candidate.currentPhaseId]) {
-        grouped[candidate.currentPhaseId].push(candidate);
+
+    // Agrupar candidatos por fase, mapeando el nombre del paso al ID de la fase
+    processData.candidates.forEach((candidate) => {
+      // Buscar la fase que coincida con el nombre del paso actual del candidato
+      const matchingPhase = processData.phases.find((phase) => phase.name === candidate.currentInterviewStep);
+
+      if (matchingPhase && grouped[matchingPhase.id]) {
+        grouped[matchingPhase.id].push(candidate);
       }
     });
-    
+
     return grouped;
   };
 
@@ -86,12 +115,25 @@ const InterviewProcess: React.FC = () => {
     );
   }
 
-  if (!processData) {
+  if (error) {
     return (
       <Container className="mt-5">
         <div className="alert alert-danger">
-          Error al cargar los datos del proceso de entrevistas.
+          <h5>Error al cargar los datos</h5>
+          <p>{error}</p>
+          <Button variant="outline-secondary" onClick={handleGoBack}>
+            <ArrowLeft size={16} className="me-2" />
+            Volver a Posiciones
+          </Button>
         </div>
+      </Container>
+    );
+  }
+
+  if (!processData) {
+    return (
+      <Container className="mt-5">
+        <div className="alert alert-danger">Error al cargar los datos del proceso de entrevistas.</div>
       </Container>
     );
   }
@@ -102,12 +144,7 @@ const InterviewProcess: React.FC = () => {
     <Container className="mt-4">
       {/* Header con navegación */}
       <div className="d-flex align-items-center mb-4 interview-process-header">
-        <Button 
-          variant="outline-secondary" 
-          size="sm" 
-          className="me-3 back-button"
-          onClick={handleGoBack}
-        >
+        <Button variant="outline-secondary" size="sm" className="me-3 back-button" onClick={handleGoBack}>
           <ArrowLeft size={16} />
         </Button>
         <h2 className="mb-0">{processData.position.title}</h2>
@@ -118,11 +155,7 @@ const InterviewProcess: React.FC = () => {
         {processData.phases
           .sort((a, b) => a.order - b.order)
           .map((phase) => (
-            <PhaseColumn
-              key={phase.id}
-              phase={phase}
-              candidates={candidatesByPhase[phase.id] || []}
-            />
+            <PhaseColumn key={phase.id} phase={phase} candidates={candidatesByPhase[phase.id] || []} />
           ))}
       </Row>
     </Container>

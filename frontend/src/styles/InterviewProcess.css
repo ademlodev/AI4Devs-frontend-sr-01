@@ -52,18 +52,18 @@
   .interview-process-columns {
     flex-direction: column;
   }
-  
+
   .phase-column {
     margin-bottom: 1.5rem;
     width: 100% !important;
     max-width: 100% !important;
     flex: 0 0 100% !important;
   }
-  
+
   .phase-candidates {
     min-height: auto;
   }
-  
+
   .candidate-card {
     margin-bottom: 0.75rem;
   }
