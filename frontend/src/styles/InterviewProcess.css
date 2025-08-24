@@ -1,0 +1,109 @@
+/* Estilos para el proceso de entrevistas */
+
+.interview-process-columns {
+  min-height: 500px;
+}
+
+.phase-column {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  height: 100%;
+}
+
+.phase-header {
+  background-color: #e9ecef !important;
+  border: 1px solid #dee2e6;
+  border-radius: 8px !important;
+}
+
+.phase-header h5 {
+  color: #495057;
+  font-size: 1rem;
+}
+
+.phase-candidates {
+  min-height: 400px;
+}
+
+.candidate-card {
+  transition: transform 0.2s ease-in-out;
+  border: 1px solid #e9ecef;
+  background-color: #ffffff;
+}
+
+.candidate-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.candidate-name {
+  color: #212529;
+  font-size: 0.9rem;
+}
+
+.candidate-score {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Responsivo para móvil */
+@media (max-width: 767.98px) {
+  .interview-process-columns {
+    flex-direction: column;
+  }
+  
+  .phase-column {
+    margin-bottom: 1.5rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+  }
+  
+  .phase-candidates {
+    min-height: auto;
+  }
+  
+  .candidate-card {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Mejoras para el header */
+.interview-process-header {
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.back-button {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.back-button:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Animación de carga */
+.loading-container {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Estilo para cuando no hay candidatos */
+.no-candidates {
+  background-color: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  color: #6c757d;
+  font-style: italic;
+}
