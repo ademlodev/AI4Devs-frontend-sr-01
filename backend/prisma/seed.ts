@@ -23,24 +23,24 @@ async function main() {
     },
   });
 
-  // Create Positions
+  // Create Positions (aligned with frontend mock data)
   const position1 = await prisma.position.create({
     data: {
-      title: 'Senior Full-Stack Engineer',
-      description: 'Develop and maintain software applications.',
+      title: 'Senior Backend Engineer',
+      description: 'Develop and maintain backend systems and APIs.',
       status: 'Open',
       isVisible: true,
       location: 'Remote',
-      jobDescription: 'Full-stack development',
+      jobDescription: 'Backend development with focus on scalable APIs',
       companyId: company1.id,
       interviewFlowId: interviewFlow1.id,
-      salaryMin: 50000,
-      salaryMax: 80000,
+      salaryMin: 70000,
+      salaryMax: 100000,
       employmentType: 'Full-time',
       benefits: 'Health insurance, 401k, Paid time off',
-      contactInfo: 'hr@lti.com',
-      requirements: '3+ years of experience in software development, knowledge in React and Node.js',
-      responsibilities: 'Develop, test, and maintain software solutions.',
+      contactInfo: 'john.doe@lti.com',
+      requirements: '5+ years of experience in backend development, knowledge in Node.js and databases',
+      responsibilities: 'Design and develop scalable backend systems.',
       companyDescription: 'LTI is a leading HR solutions provider.',
       applicationDeadline: new Date('2024-12-31')
     },
@@ -48,23 +48,45 @@ async function main() {
 
   const position2 = await prisma.position.create({
     data: {
-      title: 'Data Scientist',
-      description: 'Analyze and interpret complex data.',
+      title: 'Junior Android Engineer',
+      description: 'Develop mobile applications for Android platform.',
       status: 'Open',
       isVisible: true,
-      location: 'Remote',
-      jobDescription: 'Data analysis and machine learning',
+      location: 'Hybrid',
+      jobDescription: 'Android mobile development',
       companyId: company1.id,
-      interviewFlowId: interviewFlow2.id,
-      salaryMin: 60000,
-      salaryMax: 90000,
+      interviewFlowId: interviewFlow1.id,
+      salaryMin: 45000,
+      salaryMax: 65000,
+      employmentType: 'Full-time',
+      benefits: 'Health insurance, 401k, Paid time off',
+      contactInfo: 'jane.smith@lti.com',
+      requirements: '1-3 years of Android development experience, knowledge in Kotlin and Java',
+      responsibilities: 'Develop and maintain Android mobile applications.',
+      companyDescription: 'LTI is a leading HR solutions provider.',
+      applicationDeadline: new Date('2024-11-15')
+    },
+  });
+
+  const position3 = await prisma.position.create({
+    data: {
+      title: 'Product Manager',
+      description: 'Lead product strategy and development.',
+      status: 'Draft',
+      isVisible: true,
+      location: 'On-site',
+      jobDescription: 'Product management and strategy',
+      companyId: company1.id,
+      interviewFlowId: interviewFlow1.id,
+      salaryMin: 80000,
+      salaryMax: 120000,
       employmentType: 'Full-time',
       benefits: 'Health insurance, 401k, Paid time off, Stock options',
-      contactInfo: 'hr@lti.com',
-      requirements: 'Master degree in Data Science or related field, proficiency in Python and R',
-      responsibilities: 'Analyze data sets to derive business insights and develop predictive models.',
+      contactInfo: 'alex.jones@lti.com',
+      requirements: '3+ years of product management experience, MBA preferred',
+      responsibilities: 'Define product roadmap and coordinate with development teams.',
       companyDescription: 'LTI is a leading HR solutions provider.',
-      applicationDeadline: new Date('2024-12-31')
+      applicationDeadline: new Date('2024-07-31')
     },
   });
 
@@ -237,26 +259,44 @@ async function main() {
       interviewFlowId: interviewFlow1.id,
       interviewTypeId: interviewType3.id,
       name: 'Manager Interview',
-      orderIndex: 2,
+      orderIndex: 3,
     },
   });
 
-  // Create Employees
+  // Create Employees (aligned with frontend managers)
   const employee1 = await prisma.employee.create({
     data: {
       companyId: company1.id,
-      name: 'Alice Johnson',
-      email: 'alice.johnson@lti.com',
-      role: 'Interviewer',
+      name: 'John Doe',
+      email: 'john.doe@lti.com',
+      role: 'Engineering Manager',
     },
   });
 
   const employee2 = await prisma.employee.create({
     data: {
       companyId: company1.id,
-      name: 'Bob Miller',
-      email: 'bob.miller@lti.com',
-      role: 'Hiring Manager',
+      name: 'Jane Smith',
+      email: 'jane.smith@lti.com',
+      role: 'Mobile Team Lead',
+    },
+  });
+
+  const employee3 = await prisma.employee.create({
+    data: {
+      companyId: company1.id,
+      name: 'Alex Jones',
+      email: 'alex.jones@lti.com',
+      role: 'VP of Product',
+    },
+  });
+
+  const employee4 = await prisma.employee.create({
+    data: {
+      companyId: company1.id,
+      name: 'Alice Johnson',
+      email: 'alice.johnson@lti.com',
+      role: 'HR Interviewer',
     },
   });
 
@@ -273,9 +313,9 @@ async function main() {
   const application2 = await prisma.application.create({
     data: {
       positionId: position2.id,
-      candidateId: candidate1.id,
+      candidateId: candidate2.id,
       applicationDate: new Date(),
-      currentInterviewStep: interviewStep2.id,
+      currentInterviewStep: interviewStep1.id,
     },
   });
 
@@ -297,6 +337,15 @@ async function main() {
     },
   });
 
+  const application5 = await prisma.application.create({
+    data: {
+      positionId: position3.id,
+      candidateId: candidate1.id,
+      applicationDate: new Date(),
+      currentInterviewStep: interviewStep1.id,
+    },
+  });
+
 
   // Create Interviews
   await prisma.interview.createMany({
@@ -304,29 +353,29 @@ async function main() {
       {
         applicationId: application1.id,
         interviewStepId: interviewStep1.id,
-        employeeId: employee1.id,
+        employeeId: employee4.id,
         interviewDate: new Date(),
         result: 'Passed',
         score: 5,
-        notes: 'Good technical skills',
-      },
-      {
-        applicationId: application2.id,
-        interviewStepId: interviewStep1.id,
-        employeeId: employee1.id,
-        interviewDate: new Date(),
-        result: 'Passed',
-        score: 5,
-        notes: 'Excellent data analysis skills',
+        notes: 'Excellent communication skills and strong background',
       },
       {
         applicationId: application3.id,
         interviewStepId: interviewStep1.id,
-        employeeId: employee1.id,
+        employeeId: employee4.id,
         interviewDate: new Date(),
         result: 'Passed',
         score: 4,
-        notes: 'Good technical skills',
+        notes: 'Good technical background, ready for next step',
+      },
+      {
+        applicationId: application4.id,
+        interviewStepId: interviewStep1.id,
+        employeeId: employee4.id,
+        interviewDate: new Date(),
+        result: 'Pending',
+        score: 0,
+        notes: 'Interview scheduled',
       }
     ],
   });

@@ -82,18 +82,15 @@ const InterviewProcess: React.FC = () => {
   };
 
   const handleDragEnd = async (result: DropResult) => {
-    console.log('Drag end result:', result);
     const { destination, source, draggableId } = result;
 
     // Si no hay destino, no hacer nada
     if (!destination) {
-      console.log('No destination, returning');
       return;
     }
 
     // Si se movió a la misma posición, no hacer nada
     if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      console.log('Same position, returning');
       return;
     }
 
@@ -207,10 +204,6 @@ const InterviewProcess: React.FC = () => {
   }
 
   const candidatesByPhase = groupCandidatesByPhase();
-
-  // Debug: Log para verificar datos
-  console.log('ProcessData:', processData);
-  console.log('CandidatesByPhase:', candidatesByPhase);
 
   return (
     <Container className="mt-4">
